@@ -15,8 +15,9 @@ Neither the tools nor Gemma alone.
 ```
 tools.py            Deterministic analytics (Sense/Predict) + RAG retrieval
 orchestrator.py      Two-pass Gemma tool-orchestration loop (Decide/Explain)
+openf1_source.py      Real F1 telemetry via api.openf1.org (2026 Belgian GP)
 rag/                 FIA 2026 Sporting Regulations corpus + spur-embed index
-scenarios/           4 real lap-by-lap telemetry scenarios (CSV)
+scenarios/           4 hand-built lap-by-lap telemetry scenarios (CSV)
 web/server.py         FastAPI wrapper exposing orchestrator.decide() as JSON
 web/static/            Vanilla JS/HTML dashboard (first working demo)
 frontend/            Next.js dashboard (production UI) — Route Handlers proxy
@@ -87,20 +88,37 @@ speed limit) pulled from the official
 `check_regulations()` embeds only the query and does a cosine-similarity
 lookup against the precomputed index — no re-embedding per request.
 
-Real FastF1 telemetry was evaluated as a live/historical data source but
-dropped: F1's live-timing CDN (`livetiming.formula1.com`, CloudFront)
-returns 403 to this environment's network (a known issue — F1 blocks
-non-residential/datacenter IPs). The 4 scenarios below are realistic
-hand-built telemetry instead, chosen for reliability on demo day.
+### Real F1 telemetry (OpenF1), not just hand-built scenarios
+
+FastF1 was evaluated as a live/historical data source but its underlying
+host is blocked: `livetiming.formula1.com` (CloudFront) returns 403 to
+this environment's network — F1 blocks non-residential/datacenter IPs,
+a known issue. **OpenF1** (`api.openf1.org`) is a different, unauthenticated,
+reachable API serving the same kind of session data, and backs the
+`belgian_gp_2026` scenario (`openf1_source.py`) with the actual 2026
+Belgian GP — real lap times, gaps/intervals, race positions, tire
+compound + stint age, weather, and race-control flags (a real safety car,
+laps 2–4).
+
+Public F1 data does not include tire wear %, tire/brake temperatures, ERS
+energy, or fuel load — that's proprietary team telemetry, not broadcast
+anywhere, not even on TV. Rather than inventing precise numbers for those,
+`openf1_source.py` computes them from a documented estimate (e.g., tire
+wear from real tyre age × a compound degradation rate) and tags exactly
+which fields on each lap are estimated via `estimated_fields` — the
+dashboard shows an "(EST.)" marker on those specific stat chips and a
+"REAL DATA" badge with the same disclosure, so real and estimated data are
+never visually indistinguishable.
 
 ## Scenarios
 
-| Scenario | Track | Story | Expected call |
-|---|---|---|---|
-| `degradation` | Monza | Tire wear crosses the cliff threshold | BOX |
-| `traffic` | Silverstone | Car behind closes into DRS range | STAY OUT (traffic noted) |
-| `safety_car` | Spa-Francorchamps | Caution period cuts effective pit loss | BOX (cites FIA B5.13.3) |
-| `thermal` | Singapore | Power unit trends past the protection redline | LIFT & COAST |
+| Scenario | Track | Data | Story | Expected call |
+|---|---|---|---|---|
+| `degradation` | Monza | Hand-built | Tire wear crosses the cliff threshold | BOX |
+| `traffic` | Silverstone | Hand-built | Car behind closes into DRS range | STAY OUT (traffic noted) |
+| `safety_car` | Spa-Francorchamps | Hand-built | Caution period cuts effective pit loss | BOX (cites FIA B5.13.3) |
+| `thermal` | Singapore | Hand-built | Power unit trends past the protection redline | LIFT & COAST |
+| `belgian_gp_2026` | Spa-Francorchamps | **Real (OpenF1)** | Actual 2026 Belgian GP, laps 1–8, real safety car | BOX (cites FIA B5.13.3) |
 
 ## Submission requirements (Track: Pit Lane Telemetry)
 
@@ -124,6 +142,7 @@ Functionality (20), Presentation & Writeup (20).
 - [x] RAG over real FIA 2026 regulations, cited in live decisions
 - [x] `web/static` dashboard (vanilla JS) — first working demo
 - [x] `frontend/` Next.js dashboard wired to real backend via Route Handlers
+- [x] Real F1 telemetry via OpenF1 (`belgian_gp_2026` scenario) — real laps, gaps, positions, weather, and a real safety car; estimated fields (tire/brake/ERS/fuel) clearly tagged
 - [ ] Latency optimization (measured 3.7–4.8s vs. <2s target — see PLANNING.md)
 - [ ] Deploy a publicly reachable live demo URL
 - [ ] Kaggle Writeup
