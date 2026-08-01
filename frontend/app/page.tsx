@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import CarModel3D from "./CarModel3D";
+
+// Set NEXT_PUBLIC_CAR_3D=0 to force the static PNG (offline demos, weak GPUs).
+const CAR_3D_ENABLED = process.env.NEXT_PUBLIC_CAR_3D !== "0";
+
 // ---------- Types (mirror orchestrator.decide() / server.py response shape) ----------
 
 interface LapTelemetry {
@@ -284,7 +289,7 @@ function VehiclePanel({
       <h1 id="vehicle-title" className="sr-only">Live vehicle state</h1>
       <div className="car-stage">
         <div className="car-aura" />
-        <img className="formula-car" src="/formula-car.png" alt="Unbranded graphite Formula-style racing car viewed from above" />
+        <CarModel3D telemetry={lap} enabled={CAR_3D_ENABLED} />
       </div>
       <div className="stat-strip">
         {(() => {
@@ -424,22 +429,36 @@ export default function Home() {
   const seenEvents = useRef<Set<string>>(new Set());
   const runningRef = useRef(false);
   const currentAudio = useRef<HTMLAudioElement | null>(null);
+  // Laps can land faster than a TTS round-trip completes. Without these, two
+  // in-flight requests both resolve and play, and the callouts talk over
+  // each other — only the newest call should ever be heard.
+  const speakSeq = useRef(0);
+  const speakAbort = useRef<AbortController | null>(null);
 
   const speak = useCallback(async (text: string) => {
+    const seq = ++speakSeq.current;
     currentAudio.current?.pause();
+    speakAbort.current?.abort(); // drop the superseded request instead of paying for audio we'll discard
+    const controller = new AbortController();
+    speakAbort.current = controller;
     try {
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
+        signal: controller.signal,
       });
       if (!res.ok) return; // fail silently — voice is a nice-to-have, not core functionality
       const blob = await res.blob();
+      if (seq !== speakSeq.current) return; // a newer callout won while we were fetching
+      currentAudio.current?.pause();
       const audio = new Audio(URL.createObjectURL(blob));
       currentAudio.current = audio;
-      void audio.play();
+      // Autoplay is blocked until the user has interacted with the page; the
+      // rejection is expected, not an error worth surfacing.
+      audio.play().catch(() => {});
     } catch {
-      // network hiccup — don't block the dashboard on voice
+      // aborted or network hiccup — don't block the dashboard on voice
     }
   }, []);
 

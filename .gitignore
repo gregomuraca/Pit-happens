@@ -9,3 +9,5 @@ dist/
 rag/source/full_text.txt
 frontend/.next/
 frontend/next-env.d.ts
+.venv/
+frontend/tsconfig.tsbuildinfo
