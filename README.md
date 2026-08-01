@@ -120,6 +120,32 @@ never visually indistinguishable.
 | `thermal` | Singapore | Hand-built | Power unit trends past the protection redline | LIFT & COAST |
 | `belgian_gp_2026` | Spa-Francorchamps | **Real (OpenF1)** | Actual 2026 Belgian GP, laps 1–8, real safety car | BOX (cites FIA B5.13.3) |
 
+## Credits
+
+Third-party assets, all deliberately unbranded — no team liveries or
+manufacturer trademarks are used anywhere in the dashboard.
+
+| Asset | Source | License |
+| --- | --- | --- |
+| Circuit outlines (`frontend/app/page.tsx`) | [julesr0y/f1-circuits-svg](https://github.com/julesr0y/f1-circuits-svg) | CC-BY-4.0 |
+| 3D car model — "2020 Tatuus FT-60" | [Dave Love](https://sketchfab.com/davelove) on [Sketchfab](https://sketchfab.com/3d-models/2020-tatuus-ft-60-41c932d44ed94b1cb19100580e440aba) | CC Attribution |
+| `frontend/public/formula-car.png` | Static fallback render | — |
+
+The 3D model is embed-only (not downloadable), so it runs inside Sketchfab's
+viewer via the Viewer API rather than a self-hosted three.js scene. That makes
+it a live network dependency: every failure path falls back to the static PNG,
+and `NEXT_PUBLIC_CAR_3D=0` forces the PNG outright for offline demos.
+
+Thermal shading (tyres, brakes, engine glowing red with temperature) works by
+matching material *names*, and Sketchfab's API exposes `materialCount` but never
+the names themselves — so whether a given model can be shaded is only knowable
+by loading it. To trial another model without a code change:
+
+    http://localhost:3000/?model=<32-hex-sketchfab-uid>   # one-off
+    NEXT_PUBLIC_CAR_3D_UID=<uid>                          # pin it
+
+The console logs `[car3d] materials: [...]` and the matched groups on load.
+
 ## Submission requirements (Track: Pit Lane Telemetry)
 
 Per the official rules, this repo is the required public fork of
