@@ -82,15 +82,30 @@ we execute deterministically → Gemma explains the result. This is
 | Pit-now vs. stay-out compared numerically | met — `compare_pit_windows` tool |
 | Every recommendation backed by tool results | met — evidence array cites tool outputs |
 | Decision in <30 words | met — 20 words on first real test |
-| 3 scenarios: degradation, traffic, safety car | 1 of 3 built |
+| 3 scenarios: degradation, traffic, safety car | done — plus a 4th, thermal risk, added after the initial target |
 
 Latency optimization ideas (not yet implemented): collapse the 2-pass
 protocol into 1 call when the tool set is small/predictable, or run tool
 selection as a fast heuristic (always call all 3 tools) and skip pass 1's
 LLM round-trip entirely, keeping Gemma only for the final Explain step.
+Measured latency across scenarios ranges 3.7–4.8s depending on tool count.
+
+### Track map: investigated real geometry, reverted to stylized
+
+Tried sourcing real circuit geometry from OpenStreetMap (Overpass API) to
+replace the hand-drawn `TRACK_PATHS` outlines. OSM has real GPS data for
+most named Monza corners, but the raceway segments aren't topologically
+connected — some endpoints are 0m apart (clean joins), but at least one
+real gap (~380m) exists where no digitized track data connects two
+corners. A distance-based nearest-endpoint stitch produced a broken,
+non-closing loop with segments (e.g. Lesmo 2) placed out of real sequence
+— reconstructing it correctly would require manual, expert-verified
+corner ordering rather than derivable data, which risks presenting
+guesswork as authoritative. Reverted to the stylized shapes (already
+honestly labeled as non-survey-accurate) since track-map precision isn't
+part of the judging rubric.
 
 ## Open items
-1. Build `traffic.csv` and `safety_car.csv` scenarios + verify orchestrator on both.
-2. Decide + build the live demo surface (Streamlit/Gradio dashboard vs. terminal recording vs. Kaggle Notebook) — required submission artifact.
-3. Latency optimization pass to close the gap to <2s.
-4. Kaggle Writeup — not started.
+1. Decide + finalize the live demo surface — `frontend/` (Next.js) is the primary UI now, wired to real Gemma calls; still needs a publicly reachable deploy for the "Live Demo" submission artifact (currently localhost-only).
+2. Latency optimization pass to close the gap to <2s.
+3. Kaggle Writeup — not started.
