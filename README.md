@@ -242,53 +242,116 @@ Run the frontend in a second terminal:
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev   # http://localhost:3000, proxies to the backend on :8420
 ```
 
-The application is available at `http://localhost:3000` and communicates with the agent backend.
+Credentials live in `.env` (gitignored, not committed):
+- `SPUR_API_KEY` — Spur Compute API key
+- `SPUR_BASE_URL` — `https://ai.spuric.com/v1` (OpenAI-compatible)
+- Models used: `spur-gemma` (Google Gemma 3 27B, reasoning) + `spur-embed` (Nomic Embed, RAG retrieval only — not Gemma)
 
-### Configuration
+## How a decision gets made
 
-Credentials must be stored in a gitignored `.env` file and must never be committed. The deployment requires credentials for the configured services, including:
+`orchestrator.decide()` implements Sense → Predict → Decide → Explain as a
+two-pass loop:
 
-- OpenRouter for Gemma 4 inference.
-- Spur for SPUR-Embed retrieval.
-- ElevenLabs for optional voice generation.
+1. **Tool selection** — Gemma reads recent telemetry + the tool catalog
+   (`tools.py`: `estimate_degradation`, `pace_trend`, `compare_pit_windows`,
+   `assess_traffic_risk`, `safety_car_pit_value`, `assess_thermal_risk`,
+   `check_regulations`) and picks which to call, with what args — based on
+   what's actually happening, not a fixed checklist.
+2. **Deterministic execution** — those tools run as plain Python (or a
+   `spur-embed` similarity search for `check_regulations`), not LLM calls,
+   so the arithmetic and retrieval are reliable and auditable.
+3. **Final decision** — Gemma reads the tool results and returns one
+   <=30-word call, a confidence score, evidence citing the tool output, a
+   real FIA article citation when relevant, and the alternative it rejected.
 
-The exact environment-variable names should match the implementation included in the repository.
+`gemma_triage.py` is the earlier single-shot prototype (one telemetry
+snapshot → one Gemma call, no tool orchestration) — kept for reference/
+comparison, superseded by `orchestrator.py`.
 
-## Current limitations
+### Why a manual tool-calling loop instead of the OpenAI `tools=` API
 
-- rFactor supplies realistic simulation data, not real Formula 1 team telemetry.
-- The exact limits encountered on Spur's website and Google AI Studio still need to be documented from verified records.
-- External APIs introduce latency, quota, and availability dependencies.
-- RAG quality depends on the coverage and accuracy of the indexed material.
-- Language-model recommendations can be wrong and are not a replacement for validated race-engineering models.
-- The system still requires broader testing across circuits, race states, and failure conditions.
+Spur's Gemma 3 27B deployment returns 400 errors on both
+`tool_choice="auto"` and a forced `tool_choice` — the upstream vLLM
+server doesn't have `--enable-auto-tool-choice`/`--tool-call-parser` set.
+Since we don't control that deployment, `orchestrator.py` implements tool
+selection as structured JSON in the prompt instead of the native API.
 
-## Evaluation
+### RAG: real FIA regulations, not fabricated text
 
-A complete evaluation should record the following for repeatable rFactor scenarios:
+`rag/corpus.json` holds 10 verbatim excerpts (Safety Car, VSC, pit lane
+speed limit) pulled from the official
+[2026 FIA F1 Sporting Regulations PDF](https://www.fia.com/system/files/documents/fia_2026_f1_regulations_-_section_b_sporting_-_iss_05_-_2026-02-27.pdf)
+(`rag/source/`). `rag/build_index.py` embeds them with `spur-embed`
+(Nomic Embed, 768-dim) into `rag/index.json`. At request time,
+`check_regulations()` embeds only the query and does a cosine-similarity
+lookup against the precomputed index — no re-embedding per request.
 
-- Structured telemetry supplied to Hermes.
-- Tools requested by Gemma.
-- Evidence returned by the tools or RAG system.
-- Final recommendation and confidence.
-- Time from telemetry update to visual response.
-- Additional time required for speech generation.
-- Whether the recommendation was relevant and plausible.
+### Real F1 telemetry (OpenF1), not just hand-built scenarios
 
-A useful comparison is:
+FastF1 was evaluated as a live/historical data source but its underlying
+host is blocked: `livetiming.formula1.com` (CloudFront) returns 403 to
+this environment's network — F1 blocks non-residential/datacenter IPs,
+a known issue. **OpenF1** (`api.openf1.org`) is a different, unauthenticated,
+reachable API serving the same kind of session data, and backs the
+`belgian_gp_2026` scenario (`openf1_source.py`) with the actual 2026
+Belgian GP — real lap times, gaps/intervals, race positions, tire
+compound + stint age, weather, and race-control flags (a real safety car,
+laps 2–4).
 
-1. Gemma with telemetry only.
-2. Gemma with telemetry and unfiltered reference material.
-3. Gemma with telemetry, Hermes tool calling, and RAG.
+Public F1 data does not include tire wear %, tire/brake temperatures, ERS
+energy, or fuel load — that's proprietary team telemetry, not broadcast
+anywhere, not even on TV. Rather than inventing precise numbers for those,
+`openf1_source.py` computes them from a documented estimate (e.g., tire
+wear from real tyre age × a compound degradation rate) and tags exactly
+which fields on each lap are estimated via `estimated_fields` — the
+dashboard shows an "(EST.)" marker on those specific stat chips and a
+"REAL DATA" badge with the same disclosure, so real and estimated data are
+never visually indistinguishable.
 
-This comparison can show whether agent orchestration and retrieval improve the result rather than merely adding complexity.
+## Scenarios
 
-## Kaggle submission requirements
+| Scenario | Track | Data | Story | Expected call |
+|---|---|---|---|---|
+| `degradation` | Monza | Hand-built | Tire wear crosses the cliff threshold | BOX |
+| `traffic` | Silverstone | Hand-built | Car behind closes into DRS range | STAY OUT (traffic noted) |
+| `safety_car` | Spa-Francorchamps | Hand-built | Caution period cuts effective pit loss | BOX (cites FIA B5.13.3) |
+| `thermal` | Singapore | Hand-built | Power unit trends past the protection redline | LIFT & COAST |
+| `belgian_gp_2026` | Spa-Francorchamps | **Real (OpenF1)** | Actual 2026 Belgian GP, laps 1–8, real safety car | BOX (cites FIA B5.13.3) |
 
-The submission requires:
+## Credits
+
+Third-party assets, all deliberately unbranded — no team liveries or
+manufacturer trademarks are used anywhere in the dashboard.
+
+| Asset | Source | License |
+| --- | --- | --- |
+| Circuit outlines (`frontend/app/page.tsx`) | [julesr0y/f1-circuits-svg](https://github.com/julesr0y/f1-circuits-svg) | CC-BY-4.0 |
+| 3D car model — "2020 Tatuus FT-60" | [Dave Love](https://sketchfab.com/davelove) on [Sketchfab](https://sketchfab.com/3d-models/2020-tatuus-ft-60-41c932d44ed94b1cb19100580e440aba) | CC Attribution |
+| `frontend/public/formula-car.png` | Static fallback render | — |
+
+The 3D model is embed-only (not downloadable), so it runs inside Sketchfab's
+viewer via the Viewer API rather than a self-hosted three.js scene. That makes
+it a live network dependency: every failure path falls back to the static PNG,
+and `NEXT_PUBLIC_CAR_3D=0` forces the PNG outright for offline demos.
+
+Thermal shading (tyres, brakes, engine glowing red with temperature) works by
+matching material *names*, and Sketchfab's API exposes `materialCount` but never
+the names themselves — so whether a given model can be shaded is only knowable
+by loading it. To trial another model without a code change:
+
+    http://localhost:3000/?model=<32-hex-sketchfab-uid>   # one-off
+    NEXT_PUBLIC_CAR_3D_UID=<uid>                          # pin it
+
+The console logs `[car3d] materials: [...]` and the matched groups on load.
+
+## Submission requirements (Track: Pit Lane Telemetry)
+
+Per the official rules, this repo is the required public fork of
+[waterloodev/Build-With-Gemma](https://github.com/waterloodev/Build-With-Gemma)
+(`LICENSE` kept as-is). To be eligible for judging we also need:
 
 1. **Kaggle write-up:** architecture, Gemma usage, engineering hurdles, and design choices.
 2. **Live demonstration:** a hosted application, interactive notebook, or clear recording that judges can evaluate.
