@@ -4,3 +4,7 @@ __pycache__/
 node_modules/
 dist/
 .DS_Store
+.fastf1_cache/
+rag/source/full_text.txt
+frontend/.next/
+frontend/next-env.d.ts

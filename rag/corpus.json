@@ -1,0 +1,62 @@
+[
+  {
+    "id": "B1.6.3",
+    "article": "B1.6.3",
+    "title": "Pit Lane Speed Limit",
+    "text": "A speed limit of 80km/h will be imposed in the Pit Lane during the whole Competition. However, to ensure the safe and orderly conduct of the Competition this limit may be amended by the Race Director. Any Competitor whose driver exceeds the limit during any free practice session, qualifying session, or sprint qualifying session will be fined up to a maximum of €1000."
+  },
+  {
+    "id": "B5.12.1",
+    "article": "B5.12.1",
+    "title": "Deployment of VSC",
+    "text": "The Virtual Safety Car will be used when double waved yellow flags are needed on any section of track and Competitors or officials may be in danger, but the circumstances are not such as to warrant use of the Safety Car. The VSC procedure may be initiated to neutralise a race upon the order of the Race Director. When the order is given, a message 'VSC DEPLOYED' is sent to all Competitors and all FIA light panels will display 'VSC'."
+  },
+  {
+    "id": "B5.12.2",
+    "article": "B5.12.2",
+    "title": "During a VSC Deployment",
+    "text": "Whilst the VSC procedure is in use, no F1 Car may be driven unnecessarily slowly, erratically, or dangerously. All F1 Cars must reduce speed and stay above the minimum time set by the FIA ECU in each marshalling sector and at both safety car lines. With limited exceptions (entering/leaving the pits, or in the Pit Entry/Pit Lane/Pit Exit Road), no driver may overtake another car on track while the VSC is in use."
+  },
+  {
+    "id": "B5.12.3",
+    "article": "B5.12.3",
+    "title": "Use of Pit Lane during VSC Deployment",
+    "text": "When initiated during a race, no F1 Car may enter the pits whilst the VSC procedure is in use unless it is for the purpose of changing tyres."
+  },
+  {
+    "id": "B5.12.4",
+    "article": "B5.12.4",
+    "title": "Withdrawal of VSC",
+    "text": "When the Race Director decides it is safe to end the VSC procedure, the message 'VSC ENDING' will be sent to all Competitors and, 10-15 seconds later, the lights change to green and drivers may continue racing immediately."
+  },
+  {
+    "id": "B5.13.1",
+    "article": "B5.13.1",
+    "title": "Deployment of Safety Car",
+    "text": "The Safety Car will be used only if Competitors or officials are in immediate physical danger on or near the track, but the circumstances are not such as to necessitate suspending the race. It may be brought into operation to neutralise the race upon the order of the Race Director. When deployed, the message 'SAFETY CAR DEPLOYED' is sent to all Competitors, all marshal's posts display waved yellow flags and 'SC' boards, and the Safety Car joins the track with orange lights illuminated."
+  },
+  {
+    "id": "B5.13.2",
+    "article": "B5.13.2",
+    "title": "During a SC Deployment",
+    "text": "Whilst the Safety Car is deployed, all F1 Cars must reduce speed and form a queue behind the Safety Car no more than ten car lengths apart (twenty in poor visibility). Drivers must stay above the FIA ECU's minimum time in each marshalling sector. With limited exceptions, no driver may overtake another car, including the Safety Car, until they pass the Line for the first time after the Safety Car has returned to the Pit Lane."
+  },
+  {
+    "id": "B5.13.3",
+    "article": "B5.13.3",
+    "title": "Use of Pit Lane during a SC Deployment",
+    "text": "Other than when the F1 Cars and Safety Car are specifically required to use the Pit Lane by the Race Director, no F1 Car may enter the pits whilst the Safety Car is deployed unless it is for the purpose of changing tyres. A Drive-Through Penalty will be imposed on any driver who fails to enter the Pit Lane when required to do so."
+  },
+  {
+    "id": "B5.13.5",
+    "article": "B5.13.5",
+    "title": "Duration of SC Period",
+    "text": "The Safety Car shall be used at least until the leader is behind it and all remaining F1 Cars are queued behind them. Once lapped cars have been permitted to overtake, the Safety Car will return to the pits at the end of the following lap, unless the Race Director considers its presence still necessary."
+  },
+  {
+    "id": "B5.13.6",
+    "article": "B5.13.6",
+    "title": "Withdrawal of Safety Car",
+    "text": "When the Race Director decides it is safe to end the Safety Car period, the message 'SAFETY CAR IN THIS LAP' is sent to all Competitors and the orange lights on the Safety Car are extinguished — the signal that it will enter the Pit Lane at the end of that lap. Drivers must proceed at a pace with no erratic acceleration or braking until the restart."
+  }
+]

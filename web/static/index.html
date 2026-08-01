@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PIT//CALL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<div class="scanlines"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">PIT<span class="slashes">//</span>CALL</span>
+    <span class="brand-tag">Pit Happens</span>
+  </div>
+  <div class="topbar-center">
+    <span class="live-dot"></span>
+    <span class="live-label" id="live-label">LIVE</span>
+    <span class="divider">·</span>
+    <span id="session-track">—</span>
+    <span class="divider">·</span>
+    <span id="session-type">—</span>
+    <span class="divider">·</span>
+    <span id="lap-counter">LAP — / —</span>
+  </div>
+  <div class="topbar-right">
+    <button class="voice-btn active" id="btn-voice">🔊 VOICE</button>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<nav class="scenario-picker" id="scenario-picker"></nav>
+
+<main class="grid">
+
+  <!-- Car diagram -->
+  <section class="panel car-panel">
+    <div class="car-callouts">
+      <div class="callout callout-rl">
+        <div class="callout-label">REAR LEFT TYRE</div>
+        <div class="callout-value" id="v-rl">— · —</div>
+      </div>
+      <div class="callout callout-pu">
+        <div class="callout-label">POWER UNIT</div>
+        <div class="callout-value" id="v-pu">— · —</div>
+      </div>
+      <div class="callout callout-rr">
+        <div class="callout-label">REAR RIGHT TYRE</div>
+        <div class="callout-value" id="v-rr">— · —</div>
+      </div>
+      <div class="callout callout-energy">
+        <div class="callout-label">ENERGY</div>
+        <div class="callout-value" id="v-energy">—</div>
+      </div>
+      <div class="callout callout-brakes">
+        <div class="callout-label">BRAKES</div>
+        <div class="callout-value" id="v-brakes">—</div>
+      </div>
+      <div class="callout callout-fuel">
+        <div class="callout-label">FUEL</div>
+        <div class="callout-value" id="v-fuel">—</div>
+      </div>
+      <div class="callout callout-fl">
+        <div class="callout-label">FRONT LEFT TYRE</div>
+        <div class="callout-value" id="v-fl">— · —</div>
+      </div>
+      <div class="callout callout-fr">
+        <div class="callout-label">FRONT RIGHT TYRE</div>
+        <div class="callout-value" id="v-fr">— · —</div>
+      </div>
+    </div>
+    <div class="car-svg-wrap" id="car-svg-wrap"></div>
+  </section>
+
+  <!-- Track + weather -->
+  <section class="panel track-panel">
+    <div class="track-map" id="track-map"></div>
+    <div class="weather-list">
+      <div class="weather-row"><span class="wx-ic">▲</span><span class="wx-label">TRACK</span><span class="wx-val" id="wx-track">—</span></div>
+      <div class="weather-row"><span class="wx-ic">☁</span><span class="wx-label">AIR</span><span class="wx-val" id="wx-air">—</span></div>
+      <div class="weather-row"><span class="wx-ic">✦</span><span class="wx-label" id="wx-cond-label">COND</span><span class="wx-val" id="wx-cond">—</span></div>
+      <div class="weather-row"><span class="wx-ic">≋</span><span class="wx-label">WIND</span><span class="wx-val" id="wx-wind">—</span></div>
+      <div class="weather-row highlight"><span class="wx-ic">◷</span><span class="wx-label">PIT LOSS</span><span class="wx-val" id="wx-pitloss">—</span></div>
+    </div>
+  </section>
+
+  <!-- Charts -->
+  <section class="panel charts-panel">
+    <div class="chart-block">
+      <div class="chart-head"><span>PACE</span><span class="chart-unit" id="chart-pace-val">— s</span></div>
+      <canvas id="chart-pace" width="360" height="90"></canvas>
+    </div>
+    <div class="chart-block">
+      <div class="chart-head"><span>TYRE DEG</span><span class="chart-unit" id="chart-wear-val">— %</span></div>
+      <canvas id="chart-wear" width="360" height="90"></canvas>
+      <div class="chart-legend">
+        <span><i class="sw sw-fl"></i>FL</span><span><i class="sw sw-fr"></i>FR</span>
+        <span><i class="sw sw-rl"></i>RL</span><span><i class="sw sw-rr"></i>RR</span>
+      </div>
+    </div>
+    <div class="chart-block">
+      <div class="chart-head"><span>POWER UNIT</span><span class="chart-unit" id="chart-pu-val">— °C</span></div>
+      <canvas id="chart-pu" width="360" height="90"></canvas>
+    </div>
+  </section>
+
+  <!-- Standings -->
+  <section class="panel standings-panel">
+    <div class="standing-row" id="row-ahead"><span class="pos">—</span><span class="tag tag-ahead">AHEAD</span><span class="name">—</span><span class="gap">—</span></div>
+    <div class="standing-row us" id="row-us"><span class="pos">—</span><span class="tag tag-us">OUR CAR</span><span class="name">—</span><span class="gap">—</span></div>
+    <div class="standing-row" id="row-behind"><span class="pos">—</span><span class="tag tag-behind">BEHIND</span><span class="name">—</span><span class="gap">—</span></div>
+  </section>
+
+  <!-- Decision -->
+  <section class="panel decision-panel" id="decision-panel">
+    <div class="decision-head">
+      <span class="target-ic">◎</span>
+      <div>
+        <div class="decision-call" id="decision-call">AWAITING TELEMETRY</div>
+        <div class="decision-sub" id="decision-sub">—</div>
+      </div>
+    </div>
+    <div class="decision-stats">
+      <div class="dstat"><div class="dstat-label">Confidence</div><div class="dstat-val" id="dstat-confidence">—</div></div>
+      <div class="dstat"><div class="dstat-label">Latency</div><div class="dstat-val" id="dstat-latency">—</div></div>
+      <div class="dstat"><div class="dstat-label">Alternative</div><div class="dstat-val small" id="dstat-alt">—</div></div>
+    </div>
+    <div class="gemma-analysis">
+      <div class="gemma-head"><span class="spark">✦</span> Gemma analysis</div>
+      <div class="tool-pills" id="tool-pills"></div>
+      <div class="evidence-list" id="evidence-list"></div>
+      <div class="reg-citation" id="reg-citation" style="display:none;">
+        <span class="reg-ic">§</span><span id="reg-citation-text"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Event feed -->
+  <section class="panel events-panel">
+    <div class="events-head">EVENT INTELLIGENCE <span class="live-tag">LIVE</span></div>
+    <div class="events-list" id="events-list"></div>
+  </section>
+
+</main>
+
+<footer class="controls">
+  <button id="btn-prev" class="ctrl-btn">◀ PREV LAP</button>
+  <button id="btn-play" class="ctrl-btn primary">▶ PLAY</button>
+  <button id="btn-next" class="ctrl-btn">NEXT LAP ▶</button>
+  <div class="lap-progress"><div class="lap-progress-fill" id="lap-progress-fill"></div></div>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

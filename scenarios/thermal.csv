@@ -1,0 +1,9 @@
+lap,total_laps,driver,gap_ahead_sec,gap_behind_sec,tire_compound,tire_age_laps,fl_wear,fr_wear,rl_wear,rr_wear,fl_temp,fr_temp,rl_temp,rr_temp,brake_temp_c,energy_pct,engine_temp_c,fuel_kg,lap_time_sec,track_status
+15,58,CAR_16,3.5,4.8,medium,5,20,22,18,19,92,94,86,87,600,65,112,52,90.8,green
+16,58,CAR_16,3.4,4.9,medium,6,22,24,20,21,93,95,87,88,605,68,114,51,90.9,green
+17,58,CAR_16,3.4,5.0,medium,7,24,26,21,22,94,96,88,89,610,60,116,50,91.0,green
+18,58,CAR_16,3.3,5.1,medium,8,26,28,23,24,95,97,89,90,615,70,119,49,91.2,green
+19,58,CAR_16,3.3,5.2,medium,9,28,30,24,26,96,98,90,91,620,63,121,48,91.3,green
+20,58,CAR_16,3.2,5.3,medium,10,30,32,26,27,97,99,91,92,625,72,123,47,91.5,green
+21,58,CAR_16,3.2,5.4,medium,11,32,34,27,29,98,100,92,93,630,58,126,46,91.7,green
+22,58,CAR_16,3.1,5.5,medium,12,34,36,29,30,99,101,93,94,635,66,128,45,91.9,green
