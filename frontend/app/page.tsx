@@ -456,7 +456,7 @@ export default function Home() {
       currentAudio.current = audio;
       // Autoplay is blocked until the user has interacted with the page; the
       // rejection is expected, not an error worth surfacing.
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
     } catch {
       // aborted or network hiccup — don't block the dashboard on voice
     }
@@ -610,6 +610,7 @@ export default function Home() {
           {isReal && <span className="real-badge" title={meta?.data_note}>REAL DATA</span>}
           <span>{(meta?.track ?? "—").toUpperCase()} · {(meta?.session ?? "—").toUpperCase()}</span>
           <span>LAP <b>{progress?.current_lap ?? "—"}</b> / {progress?.total_laps ?? "—"}</span>
+          <span className="clock">{clock}</span>
         </div>
         <button
           className="stream-toggle voice"
@@ -624,7 +625,6 @@ export default function Home() {
         <button className={`stream-toggle ${running ? "" : "paused"}`} onClick={toggleRunning} aria-label={running ? "Pause telemetry" : "Resume telemetry"}>
           {running ? "PAUSE" : "RESUME"}
         </button>
-        <div className="clock">{clock}</div>
       </header>
 
       <nav className="scenario-bar" aria-label="Strategy scenarios">
