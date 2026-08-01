@@ -8,6 +8,7 @@ interface LapTelemetry {
   lap: number;
   total_laps: number;
   driver: string;
+  position?: number;
   gap_ahead_sec: number;
   gap_behind_sec: number;
   tire_compound: string;
@@ -20,6 +21,7 @@ interface LapTelemetry {
   fuel_kg: number;
   lap_time_sec: number;
   track_status: string;
+  estimated_fields?: string[];
 }
 
 interface ToolCall {
@@ -48,6 +50,8 @@ interface ScenarioMeta {
   first_lap: number;
   last_lap: number;
   total_laps: number;
+  is_real?: boolean;
+  data_note?: string;
 }
 
 interface DecideResponse {
@@ -57,6 +61,7 @@ interface DecideResponse {
   elapsed_sec: number;
   meta: ScenarioMeta;
   progress: { current_lap: number; first_lap: number; last_lap: number; total_laps: number };
+  standings?: StandingRow[];
 }
 
 interface EventItem {
@@ -275,14 +280,22 @@ function VehiclePanel({
         <img className="formula-car" src="/formula-car.png" alt="Unbranded graphite Formula-style racing car viewed from above" />
       </div>
       <div className="stat-strip">
-        <div className="stat-chip"><span>FL TYRE</span><strong>{lap.tire_temps_c.FL}°C · {lap.tire_wear_pct.FL}%</strong></div>
-        <div className="stat-chip"><span>FR TYRE</span><strong>{lap.tire_temps_c.FR}°C · {lap.tire_wear_pct.FR}%</strong></div>
-        <div className="stat-chip"><span>RL TYRE</span><strong>{lap.tire_temps_c.RL}°C · {lap.tire_wear_pct.RL}%</strong></div>
-        <div className="stat-chip"><span>RR TYRE</span><strong>{lap.tire_temps_c.RR}°C · {lap.tire_wear_pct.RR}%</strong></div>
-        <div className={`stat-chip ${thermalWarning ? "warning" : ""}`}><span>POWER UNIT</span><strong>{lap.engine_temp_c}°C · {thermalWarning ? "HIGH" : "NOMINAL"}</strong></div>
-        <div className="stat-chip"><span>BRAKES</span><strong>{lap.brake_temp_c}°C</strong></div>
-        <div className="stat-chip"><span>ENERGY</span><strong>{lap.energy_pct}%</strong></div>
-        <div className="stat-chip"><span>FUEL</span><strong>{lap.fuel_kg} kg</strong></div>
+        {(() => {
+          const est = new Set(lap.estimated_fields ?? []);
+          const tag = (field: string) => (est.has(field) ? " (EST.)" : "");
+          return (
+            <>
+              <div className="stat-chip"><span>FL TYRE{tag("tire_wear_pct")}</span><strong>{lap.tire_temps_c.FL}°C · {lap.tire_wear_pct.FL}%</strong></div>
+              <div className="stat-chip"><span>FR TYRE{tag("tire_wear_pct")}</span><strong>{lap.tire_temps_c.FR}°C · {lap.tire_wear_pct.FR}%</strong></div>
+              <div className="stat-chip"><span>RL TYRE{tag("tire_wear_pct")}</span><strong>{lap.tire_temps_c.RL}°C · {lap.tire_wear_pct.RL}%</strong></div>
+              <div className="stat-chip"><span>RR TYRE{tag("tire_wear_pct")}</span><strong>{lap.tire_temps_c.RR}°C · {lap.tire_wear_pct.RR}%</strong></div>
+              <div className={`stat-chip ${thermalWarning ? "warning" : ""}`}><span>POWER UNIT{tag("engine_temp_c")}</span><strong>{lap.engine_temp_c}°C · {thermalWarning ? "HIGH" : "NOMINAL"}</strong></div>
+              <div className="stat-chip"><span>BRAKES{tag("brake_temp_c")}</span><strong>{lap.brake_temp_c}°C</strong></div>
+              <div className="stat-chip"><span>ENERGY{tag("energy_pct")}</span><strong>{lap.energy_pct}%</strong></div>
+              <div className="stat-chip"><span>FUEL{tag("fuel_kg")}</span><strong>{lap.fuel_kg} kg</strong></div>
+            </>
+          );
+        })()}
       </div>
       <div className="chart-grid">
         <LineChart title="PACE" unit="s" value={lap.lap_time_sec.toFixed(1)} path={buildSparkPath(paceValues)} lapLabel={`L${lap.lap}`} />
@@ -558,7 +571,9 @@ export default function Home() {
   const wearValues = history.map((l) => Math.max(l.tire_wear_pct.FL, l.tire_wear_pct.FR, l.tire_wear_pct.RL, l.tire_wear_pct.RR));
   const puValues = history.map((l) => l.engine_temp_c);
   const lastLap = history[history.length - 1];
-  const standings = useMemo(() => (lastLap ? buildStandings(lastLap, 8, 20) : []), [lastLap]);
+  const syntheticStandings = useMemo(() => (lastLap ? buildStandings(lastLap, 8, 20) : []), [lastLap]);
+  const standings = data?.standings ?? syntheticStandings;
+  const isReal = Boolean(meta?.is_real);
 
   return (
     <main className="dashboard-shell">
@@ -566,6 +581,7 @@ export default function Home() {
         <div className="brand"><strong>PIT<span>//</span>CALL</strong><small>Pit Happens</small></div>
         <div className="session-meta">
           <span className="live-pill"><i /> LIVE</span>
+          {isReal && <span className="real-badge" title={meta?.data_note}>REAL DATA</span>}
           <span>{(meta?.track ?? "—").toUpperCase()} · {(meta?.session ?? "—").toUpperCase()}</span>
           <span>LAP <b>{progress?.current_lap ?? "—"}</b> / {progress?.total_laps ?? "—"}</span>
         </div>

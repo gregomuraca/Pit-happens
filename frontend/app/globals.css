@@ -63,6 +63,7 @@ button { font: inherit; }
 .session-meta b { color: var(--cyan); }
 .live-pill { color: var(--green); }
 .live-pill i { width: 8px; height: 8px; background: var(--green); border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 12px rgba(35,220,131,.6); }
+.real-badge { background: rgba(35,220,131,.14); color: var(--green); border: 1px solid rgba(35,220,131,.4); border-radius: 3px; font-size: 10px; font-weight: 800; padding: 3px 8px; cursor: help; }
 .clock { justify-self: end; color: #c6cdd2; font-variant-numeric: tabular-nums; }
 .stream-toggle { border: 1px solid #22505a; background: transparent; color: var(--cyan); padding: 7px 10px; font-size: 9px; letter-spacing: .13em; cursor: pointer; }.stream-toggle.paused { color: var(--amber); border-color: #6f542e; }
 .scenario-bar { height: 42px; display: flex; align-items: center; gap: 7px; padding: 0 20px; background: #090e14; border-bottom: 1px solid var(--line); position: sticky; top: 64px; z-index: 19; }.scenario-bar > span { color: var(--muted); font-size: 9px; letter-spacing: .16em; margin-right: 5px; }.scenario-bar button { border: 1px solid var(--line); background: #0b1219; color: #8e9aa3; padding: 7px 13px; font-size: 9px; letter-spacing: .11em; cursor: pointer; }.scenario-bar button.active { color: var(--bg); border-color: var(--cyan); background: var(--cyan); font-weight: 900; }.scenario-bar small { margin-left: auto; color: var(--green); font-size: 8px; letter-spacing: .13em; }
