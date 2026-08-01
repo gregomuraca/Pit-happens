@@ -104,7 +104,7 @@ def call_gemma(client: OpenAI, system: str, user_content: str) -> str:
         ],
         temperature=0.2,
     )
-    return strip_code_fence(response.choices[0].message.content)
+    return strip_code_fence(response.choices[0].message.content or "")
 
 
 def strip_code_fence(text: str) -> str:
@@ -129,7 +129,9 @@ def get_client() -> OpenAI:
     return _client
 
 
-def decide(recent_laps: list[dict], total_laps: int, client: OpenAI | None = None) -> dict:
+def decide(
+    recent_laps: list[dict], total_laps: int, client: OpenAI | None = None
+) -> dict:
     """Run the full Sense/Predict -> Decide -> Explain loop over a window of laps.
 
     Returns a dict with the tool selection, executed tool results, final
@@ -138,7 +140,9 @@ def decide(recent_laps: list[dict], total_laps: int, client: OpenAI | None = Non
     client = client or get_client()
     t0 = time.time()
 
-    tool_select_system = TOOL_SELECT_PROMPT.format(tools=json.dumps(TOOL_SCHEMAS, indent=2))
+    tool_select_system = TOOL_SELECT_PROMPT.format(
+        tools=json.dumps(TOOL_SCHEMAS, indent=2)
+    )
     selection_raw = call_gemma(client, tool_select_system, json.dumps(recent_laps))
 
     try:
@@ -161,7 +165,9 @@ def decide(recent_laps: list[dict], total_laps: int, client: OpenAI | None = Non
         tool_calls.append({"tool": name, "args": args, "result": result})
 
     decision_context = {"latest_lap": recent_laps[-1], "tool_results": tool_results}
-    decision_raw = call_gemma(client, FINAL_DECISION_PROMPT, json.dumps(decision_context))
+    decision_raw = call_gemma(
+        client, FINAL_DECISION_PROMPT, json.dumps(decision_context)
+    )
     elapsed = time.time() - t0
 
     try:
