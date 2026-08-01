@@ -332,7 +332,7 @@ h2 {
 .chart-head {
   display: flex;
   justify-content: space-between;
-  align-items: start;
+  align-items: flex-start;
 }
 .chart-head div {
   display: flex;

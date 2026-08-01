@@ -9,6 +9,12 @@ const CORNER_KEYS = ["FL", "FR", "RL", "RR"] as const;
 type Corner = (typeof CORNER_KEYS)[number];
 type HeatGroup = "tyre" | "brake" | "engine";
 
+const TYRE_MIN_C = 85;
+const TYRE_MAX_C = 125;
+const TYRE_COLD_NO_SHADE_NORM = 0.12;
+const TYRE_WARM_NORM = 0.22;
+const TYRE_HOT_NORM = 0.8;
+
 export interface ThermalTelemetry {
     tire_temps_c?: Partial<Record<Corner, number>> | null;
     brake_temp_c?: number | null;
@@ -52,10 +58,14 @@ const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
 function heatColor(t: number): THREE.Color {
     const value = clamp01(t);
-    if (value >= 0.8) return new THREE.Color(0xff3b1f);
-    if (value >= 0.22) return new THREE.Color(0xff8f1f);
-    if (value >= 0.12) return new THREE.Color(0x6b5b48);
+    if (value >= TYRE_HOT_NORM) return new THREE.Color(0xff3b1f);
+    if (value >= TYRE_WARM_NORM) return new THREE.Color(0xff8f1f);
+    if (value >= TYRE_COLD_NO_SHADE_NORM) return new THREE.Color(0x6b5b48);
     return new THREE.Color(0x121417);
+}
+
+function normaliseTyreTemp(tempC: number): number {
+    return clamp01((tempC - TYRE_MIN_C) / (TYRE_MAX_C - TYRE_MIN_C));
 }
 
 function heatCss(t: number): string {
@@ -126,10 +136,9 @@ export default function CarModel3D({
     const heat = useMemo(() => {
         const temps = CORNER_KEYS.map((corner) => tyreTemps?.[corner]).filter((value): value is number => typeof value === "number");
         const hottestTyre = temps.length ? Math.max(...temps) : null;
-        const tyre = hottestTyre === null ? null : clamp01((hottestTyre - 85) / (125 - 85));
         const brake = brakeTemp === null ? null : clamp01((brakeTemp - 350) / (950 - 350));
         const engine = engineTemp === null ? null : clamp01((engineTemp - 95) / (135 - 95));
-        return { tyre, brake, engine, hottestTyre };
+        return { brake, engine, hottestTyre };
     }, [tyreTemps, brakeTemp, engineTemp]);
 
     useEffect(() => {
@@ -382,7 +391,7 @@ export default function CarModel3D({
             if (group === "tyre") {
                 const cornerTemp = corner ? tyreTemps?.[corner] : undefined;
                 const source = typeof cornerTemp === "number" ? cornerTemp : hottestTyre;
-                value = source === null ? null : clamp01((source - 85) / (125 - 85));
+                value = source === null ? null : normaliseTyreTemp(source);
             } else if (group === "brake") {
                 value = heat.brake;
             } else {
@@ -395,7 +404,7 @@ export default function CarModel3D({
             if (lastAppliedRef.current.get(key) === quantised) continue;
             lastAppliedRef.current.set(key, quantised);
 
-            if (group === "tyre" && quantised < 0.12) {
+            if (group === "tyre" && quantised < TYRE_COLD_NO_SHADE_NORM) {
                 material.color.copy(shaded.baseColor);
                 material.emissive.copy(shaded.baseEmissive);
                 material.emissiveIntensity = shaded.baseEmissiveIntensity;
@@ -415,7 +424,7 @@ export default function CarModel3D({
 
     const tyreReadout = (corner: Corner) => {
         const value = tyreTemps?.[corner];
-        const t = typeof value === "number" ? clamp01((value - 85) / (125 - 85)) : null;
+        const t = typeof value === "number" ? normaliseTyreTemp(value) : null;
         return (
             <span key={corner} className={`heat-chip tyre-${corner.toLowerCase()}`}>
                 <i style={{ background: t === null ? "#4b5861" : heatCss(t) }} />
