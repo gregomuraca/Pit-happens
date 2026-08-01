@@ -148,6 +148,13 @@ function parseCallLabel(call: string | undefined): { label: string; sub: string 
   return { label, sub: rest };
 }
 
+function formatSpeechText(text: string): string {
+  return text
+    .replace(/(\d+(?:\.\d+)?)\s*s\b/gi, "$1 seconds")
+    .replace(/(\d+)\s*°\s*C\b/gi, "$1 degrees C")
+    .replace(/\bL(\d+)\b/g, "lap $1");
+}
+
 // Real circuit outlines (current-era layout for each track), sourced from
 // julesr0y/f1-circuits-svg (CC-BY-4.0) — see README credits. viewBox 0 0 500 500.
 const TRACK_VIEWBOX = "0 0 500 500";
@@ -501,7 +508,7 @@ export default function Home() {
       deriveEvents(json);
       if (voiceOn && json.decision?.call) {
         const { label, sub } = parseCallLabel(json.decision.call);
-        void speak(`${label}. ${sub}`);
+        void speak(formatSpeechText(`${label}. ${sub}`));
       }
       return json;
     },
