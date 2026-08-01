@@ -1,0 +1,18 @@
+{
+  "lap": 34,
+  "total_laps": 58,
+  "driver": "CAR_16",
+  "gap_ahead_sec": 1.8,
+  "gap_behind_sec": 3.4,
+  "tire_compound": "medium",
+  "tire_age_laps": 19,
+  "tire_temps_c": { "FL": 108, "FR": 111, "RL": 101, "RR": 103 },
+  "tire_wear_pct": { "FL": 62, "FR": 65, "RL": 54, "RR": 55 },
+  "brake_temps_c": { "FL": 410, "FR": 430, "RL": 380, "RR": 390 },
+  "engine_temp_c": 118,
+  "fuel_load_kg": 42,
+  "last_3_lap_times_sec": [92.4, 92.9, 93.6],
+  "sector_deltas_vs_best_sec": [0.12, 0.31, 0.44],
+  "drs_available": true,
+  "track_status": "green"
+}
